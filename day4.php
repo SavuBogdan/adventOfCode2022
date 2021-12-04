@@ -11,8 +11,8 @@ require_once './AbstractBenchmarking.php';
 
 class Line
 {
-    private array $numbers;
-    private bool $bingo = false;
+    private array $numbers = [];
+    public bool $bingo = false;
     private int $markedNumbers = 0;
 
     public function addNumber(int $number): void
@@ -23,35 +23,16 @@ class Line
     public function markNumber(int $number): void
     {
         if (isset($this->numbers[$number])) {
-            $this->numbers[$number] = true;
             $this->markedNumbers++;
             if ($this->markedNumbers === 5) {
                 $this->bingo = true;
             }
         }
     }
-
-    /**
-     * @return bool
-     */
-    public function isBingo(): bool
-    {
-        return $this->bingo;
-    }
-
-    /**
-     * @return array
-     */
-    public function getNumbers(): array
-    {
-        return $this->numbers;
-    }
-
 }
 
 class BingoBoard
 {
-    private int $id;
     /**
      * @var Line[]
      */
@@ -61,92 +42,29 @@ class BingoBoard
      * @var Line[]
      */
     private array $columns = [];
-    private array $markedNumbers = [];
     private array $unmarkedNumbers = [];
-    private int $playedNumbers = 0;
+    public int $unmarkedNumbersSum = 0;
+    public int $lastNumber = 0;
+    public int $playedNumbers = 0;
     public bool $isBingo = false;
 
-    public function __construct($id)
+    #[Pure] public function __construct()
     {
-        $this->id = $id;
-        $this->initRowsAndColumns();
+        for ($i = 0; $i < 5; $i++) {
+            $this->rows[] = new Line();
+            $this->columns[] = new Line();
+        }
     }
 
-    public function getId(): int
-    {
-        return $this->id;
-    }
-
-    /**
-     * @return array
-     */
-    public function getUnmarkedNumbers(): array
-    {
-        return $this->unmarkedNumbers;
-    }
 
     public function addBoardNumbers(array $boardNumbers): void
     {
         foreach ($boardNumbers as $boardNumber) {
-            $this->unmarkedNumbers[] = $boardNumber;
+            $this->unmarkedNumbers[$boardNumber] = false;
+            $this->unmarkedNumbersSum += $boardNumber;
         }
     }
 
-    /**
-     * @return array
-     */
-    public function getRows(): array
-    {
-        return $this->rows;
-    }
-
-    /**
-     * @param array $rows
-     */
-    public function setRows(array $rows): void
-    {
-        $this->rows = $rows;
-    }
-
-    /**
-     * @return array
-     */
-    public function getColumns(): array
-    {
-        return $this->columns;
-    }
-
-    /**
-     * @param array $columns
-     */
-    public function setColumns(array $columns): void
-    {
-        $this->columns = $columns;
-    }
-
-    /**
-     * @return array
-     */
-    public function getMarkedNumbers(): array
-    {
-        return $this->markedNumbers;
-    }
-
-    /**
-     * @param array $markedNumbers
-     */
-    public function setMarkedNumbers(array $markedNumbers): void
-    {
-        $this->markedNumbers = $markedNumbers;
-    }
-
-    /**
-     * @return int
-     */
-    public function getPlayedNumbers(): int
-    {
-        return $this->playedNumbers;
-    }
 
     public function addRow(string $param)
     {
@@ -155,14 +73,10 @@ class BingoBoard
             $this->rows[$this->currentRow]->addNumber($rowNumber);
         }
         $this->currentRow++;
-        $this->columns[0]->addNumber($rowNumbers[0]);
-        $this->columns[1]->addNumber($rowNumbers[1]);
-        $this->columns[2]->addNumber($rowNumbers[2]);
-        $this->columns[3]->addNumber($rowNumbers[3]);
-        $this->columns[4]->addNumber($rowNumbers[4]);
+        for ($i = 0; $i < 5; $i++) {
+            $this->columns[$i]->addNumber($rowNumbers[$i]);
+        }
         $this->addBoardNumbers($rowNumbers);
-//        var_dump("added row $param to board $this->id");
-//        var_dump($rowNumbers);
     }
 
     public function playBingo(array $numbers)
@@ -176,46 +90,32 @@ class BingoBoard
 
     private function playNumber(int $number)
     {
-        if (in_array($number, $this->unmarkedNumbers)) {
-//            if (in_array($number, $this->un)) {
-//            }
-            $this->markedNumbers[] = $number;
-            $this->unmarkedNumbers = array_diff($this->unmarkedNumbers, [$number]);
+        if (isset($this->unmarkedNumbers[$number])) {
+            $this->lastNumber = $number;
+            $this->unmarkedNumbersSum -= $number;
+            unset($this->unmarkedNumbers[$number]);
             foreach ($this->rows as $row) {
                 $row->markNumber($number);
-                if ($row->isBingo()) {
+                if ($row->bingo) {
                     $this->isBingo = true;
                 }
             }
             foreach ($this->columns as $column) {
                 $column->markNumber($number);
-                if ($column->isBingo()) {
+                if ($column->bingo) {
                     $this->isBingo = true;
                 }
             }
-//            var_dump("played $number on board $this->id");
         }
         $this->playedNumbers++;
-    }
-
-    private function initRowsAndColumns()
-    {
-        for ($i = 0; $i < 5; $i++) {
-            $this->rows[] = new Line();
-            $this->columns[] = new Line();
-        }
     }
 }
 
 
 class Day4 extends AbstractBenchmarking
 {
-    private array $data;
-    private array $numbersDrawn;
-    /**
-     * @var BingoBoard[]
-     */
-    private array $boards = [];
+    private array $data = [];
+    private array $numbersDrawn = [];
 
     public function __construct()
     {
@@ -225,71 +125,49 @@ class Day4 extends AbstractBenchmarking
     public function part1(): float|int
     {
         $this->numbersDrawn = array_map('intval', explode(',', $this->data[0]));
-        $this->boards = $this->generateBoards(array_slice($this->data, 1), $this->numbersDrawn);
-        $winningBoard = $this->getWinningBoard();
-        $markedNumbers = $winningBoard->getMarkedNumbers();
-        return array_sum($winningBoard->getUnmarkedNumbers()) * end($markedNumbers);
+        $winningBoard = $this->generateBoardsPart1(array_slice($this->data, 1), $this->numbersDrawn);
+        return $winningBoard->unmarkedNumbersSum * $winningBoard->lastNumber;
     }
 
     public function part2(): float|int
     {
         $this->numbersDrawn = array_map('intval', explode(',', $this->data[0]));
-        $this->boards = $this->generateBoards(array_slice($this->data, 1), $this->numbersDrawn);
-        $worstBoard = $this->getWorstBoard();
-        $markedNumbers = $worstBoard->getMarkedNumbers();
-        return array_sum($worstBoard->getUnmarkedNumbers()) * end($markedNumbers);
+        $worstBoard = $this->generateBoardsPart2(array_slice($this->data, 1), $this->numbersDrawn);
+        return $worstBoard->unmarkedNumbersSum * $worstBoard->lastNumber;
     }
 
-    private function generateBoards(array $rows, array $numbers): array
+    private function generateBoardsPart1(array $rows, array $numbers): BingoBoard
     {
-        $boardsObj = [];
-        for ($i = 0; $i < count($rows); $i = $i + 5) {
+        $winningBoard = false;
+        $rowCount = count($rows);
+        for ($i = 0; $i < $rowCount; $i = $i + 5) {
 
-            $board = new BingoBoard(floor($i / 5 + 1));
-            $board->addRow($rows[$i]);
-            $board->addRow($rows[$i + 1]);
-            $board->addRow($rows[$i + 2]);
-            $board->addRow($rows[$i + 3]);
-            $board->addRow($rows[$i + 4]);
-            $board->playBingo($numbers);
-            $boardsObj[] = $board;
-        }
-        return $boardsObj;
-    }
-
-    /**
-     * @return BingoBoard
-     */
-    #[Pure] public function getWinningBoard(): BingoBoard
-    {
-        $winningBoard = null;
-        foreach ($this->boards as $board) {
-            if ($winningBoard === null) {
-                $winningBoard = $board;
-                continue;
+            $board = new BingoBoard();
+            for ($j = $i; $j < $i + 5; $j++) {
+                $board->addRow($rows[$j]);
             }
-            if ($board->isBingo && $board->getPlayedNumbers() < $winningBoard->getPlayedNumbers()) {
+            $board->playBingo($numbers);
+            if (!$winningBoard || ($board->isBingo && $board->playedNumbers < $winningBoard->playedNumbers)) {
                 $winningBoard = $board;
             }
         }
         return $winningBoard;
     }
 
-    /**
-     * @return BingoBoard
-     */
-    #[Pure] public function getWorstBoard(): BingoBoard
+    private function generateBoardsPart2(array $rows, array $numbers): BingoBoard
     {
-        $worstBoard = null;
-        foreach ($this->boards as $board) {
-            if ($worstBoard === null) {
-                $worstBoard = $board;
-                continue;
-            }
-            if ($board->isBingo && $board->getPlayedNumbers() >= $worstBoard->getPlayedNumbers()) {
-                $worstBoard = $board;
-            }
+        $worstBoard = false;
+        $rowCount = count($rows);
+        for ($i = 0; $i < $rowCount; $i = $i + 5) {
 
+            $board = new BingoBoard();
+            for ($j = 0; $j < 5; $j++) {
+                $board->addRow($rows[$j + $i]);
+            }
+            $board->playBingo($numbers);
+            if (!$worstBoard || ($board->isBingo && $board->playedNumbers >= $worstBoard->playedNumbers)) {
+                $worstBoard = $board;
+            }
         }
         return $worstBoard;
     }
