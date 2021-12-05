@@ -8,6 +8,9 @@ require_once './AbstractBenchmarking.php';
 class Day2 extends AbstractBenchmarking
 {
     private array $data;
+    private array $testData;
+    private string $rawData;
+    private string $rawTestData;
 
     private const DOWN = 'down';
     private const UP = 'up';
@@ -18,15 +21,18 @@ class Day2 extends AbstractBenchmarking
 
     public function __construct()
     {
-        $this->data = explode(PHP_EOL, file_get_contents('Data/day2.txt'));
-        $this ->data = array_map(fn($item) => explode(' ', $item), $this->data);
+        $this->rawData = file_get_contents('Data/day2.txt');
+        $this->rawTestData = file_get_contents('TestData/day2.txt');
+        $this->parseData(true);
+        $this->parseData();
     }
 
-    public function part1(): int
+    public function part1(bool $test = false): int
     {
+        $inputData = $test ? $this->testData : $this->data;
         $this->x = 0;
         $this->y = 0;
-        foreach ($this->data as $value) {
+        foreach ($inputData as $value) {
             if ($value[0] === self::DOWN) {
                 $this->y += $value[1];
             } elseif ($value[0] === self::UP) {
@@ -38,12 +44,13 @@ class Day2 extends AbstractBenchmarking
         return $this->x * $this->y;
     }
 
-    public function part2(): float|int
+    public function part2(bool $test = false): float|int
     {
+        $inputData = $test ? $this->testData : $this->data;
         $this->x = 0;
         $this->y = 0;
         $this->aim = 0;
-        foreach ($this->data as $value) {
+        foreach ($inputData as $value) {
             if ($value[0] === self::DOWN) {
                 $this->aim += $value[1];
             } elseif ($value[0] === self::UP) {
@@ -54,5 +61,17 @@ class Day2 extends AbstractBenchmarking
             }
         }
         return $this->x * $this->y;
+    }
+
+    public function parseData(bool $test = false)
+    {
+        $rawInputData = $test ? $this->rawTestData : $this->rawData;
+        if ($test) {
+            $this->testData = explode(PHP_EOL, $rawInputData);
+            $this->testData = array_map(fn($item) => explode(' ', $item), $this->testData);
+        } else {
+            $this->data = explode(PHP_EOL, $rawInputData);
+            $this->data = array_map(fn($item) => explode(' ', $item), $this->data);
+        }
     }
 }

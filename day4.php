@@ -115,24 +115,32 @@ class BingoBoard
 class Day4 extends AbstractBenchmarking
 {
     private array $data = [];
+    private array $testData = [];
+    private string $rawData;
+    private string $rawTestData;
     private array $numbersDrawn = [];
 
     public function __construct()
     {
-        $this->data = explode(PHP_EOL, file_get_contents('Data/day4.txt'));
+        $this->rawData = file_get_contents('Data/day4.txt');
+        $this->rawTestData = file_get_contents('TestData/day4.txt');
+        $this->parseData(true);
+        $this->parseData();
     }
 
-    public function part1(): float|int
+    public function part1(bool $test = false): float|int
     {
-        $this->numbersDrawn = array_map('intval', explode(',', $this->data[0]));
-        $winningBoard = $this->generateBoardsPart1(array_slice($this->data, 1), $this->numbersDrawn);
+        $inputData = $test ? $this->testData : $this->data;
+        $this->numbersDrawn = array_map('intval', explode(',', $inputData[0]));
+        $winningBoard = $this->generateBoardsPart1(array_slice($inputData, 1), $this->numbersDrawn);
         return $winningBoard->unmarkedNumbersSum * $winningBoard->lastNumber;
     }
 
-    public function part2(): float|int
+    public function part2(bool $test = false): float|int
     {
-        $this->numbersDrawn = array_map('intval', explode(',', $this->data[0]));
-        $worstBoard = $this->generateBoardsPart2(array_slice($this->data, 1), $this->numbersDrawn);
+        $inputData = $test ? $this->testData : $this->data;
+        $this->numbersDrawn = array_map('intval', explode(',', $inputData[0]));
+        $worstBoard = $this->generateBoardsPart2(array_slice($inputData, 1), $this->numbersDrawn);
         return $worstBoard->unmarkedNumbersSum * $worstBoard->lastNumber;
     }
 
@@ -170,5 +178,15 @@ class Day4 extends AbstractBenchmarking
             }
         }
         return $worstBoard;
+    }
+
+    public function parseData(bool $test = false)
+    {
+        $rawInputData = $test ? $this->rawTestData : $this->rawData;
+        if ($test) {
+            $this->testData = explode(PHP_EOL, $rawInputData);
+        } else {
+            $this->data = explode(PHP_EOL, $rawInputData);
+        }
     }
 }

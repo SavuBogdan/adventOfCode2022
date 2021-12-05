@@ -131,29 +131,50 @@ class Plane
 class Day5 extends AbstractBenchmarking
 {
     private array $data;
+    private array $testData;
+    private string $rawData;
+    private string $rawTestData;
 
     public function __construct()
     {
-        $this->data = explode(PHP_EOL, file_get_contents('Data/day5.txt'));
+        $this->rawData = file_get_contents('Data/day5.txt');
+        $this->rawTestData = file_get_contents('TestData/day5.txt');
+        $this->parseData(true);
+        $this->parseData();
     }
 
-    public function part1()
+    public function parseData(bool $test = false): void
     {
-        $plane = new Plane();
-        foreach ($this->data as $line) {
-            preg_match('/(\d+),(\d+) -> (\d+),(\d+)$/', $line, $matches);
+        $rawInputData = $test ? $this->rawTestData : $this->rawData;
+
+        foreach (explode(PHP_EOL, $rawInputData) as $value) {
+            preg_match('/(\d+),(\d+) -> (\d+),(\d+)$/', $value, $matches);
             $lineCoords = array_map('intval', array_slice($matches, 1, 4));
-            $plane->drawLineP1($lineCoords[0], $lineCoords[1],$lineCoords[2], $lineCoords[3]);
+            if ($test) {
+                $this->testData[] = $lineCoords;
+            } else {
+                $this->data[] = $lineCoords;
+            }
         }
     }
 
-    public function part2()
+    public function part1(bool $test = false): int
     {
+        $inputData = $test ? $this->testData : $this->data;
         $plane = new Plane();
-        foreach ($this->data as $line) {
-            preg_match('/(\d+),(\d+) -> (\d+),(\d+)$/', $line, $matches);
-            $lineCoords = array_map('intval', array_slice($matches, 1, 4));
-            $plane->drawLineP2($lineCoords[0], $lineCoords[1],$lineCoords[2], $lineCoords[3]);
+        foreach ($inputData as $line) {
+            $plane->drawLineP1($line[0], $line[1],$line[2], $line[3]);
         }
+        return $plane->overlapsCount[2];
+    }
+
+    public function part2(bool $test = false): int
+    {
+        $inputData = $test ? $this->testData : $this->data;
+        $plane = new Plane();
+        foreach ($inputData as $line) {
+            $plane->drawLineP2($line[0], $line[1],$line[2], $line[3]);
+        }
+        return $plane->overlapsCount[2];
     }
 }

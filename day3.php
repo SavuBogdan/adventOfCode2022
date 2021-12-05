@@ -7,7 +7,10 @@ require_once './AbstractBenchmarking.php';
 
 class Day3 extends AbstractBenchmarking
 {
-    public array $data;
+    private array $data = [];
+    private array $testData = [];
+    private string $rawData;
+    private string $rawTestData;
     private array $dataBitSum = [];
     private string $gamma = '';
     private string $epsilon = '';
@@ -15,15 +18,20 @@ class Day3 extends AbstractBenchmarking
 
     public function __construct()
     {
-        $this->data = array_map('str_split', explode(PHP_EOL, file_get_contents('Data/day3.txt')));
-        $this->bitSize = count($this->data[0]);
+        $this->rawData = file_get_contents('Data/day3.txt');
+        $this->rawTestData = file_get_contents('TestData/day3.txt');
+        $this->parseData(true);
+        $this->parseData();
+
     }
 
-    public function part1()
+    public function part1(bool $test = false)
     {
-        $dataCount = count($this->data) / 2;
+        $inputData = $test ? $this->testData : $this->data;
+        $this->bitSize = count($inputData[0]);
+        $dataCount = count($inputData) / 2;
         $this->dataBitSum = array_fill(0, $this->bitSize, 0);
-        foreach ($this->data as $value) {
+        foreach ($inputData as $value) {
             for ($i = 0; $i < $this->bitSize; $i++) {
                 $this->dataBitSum[$i] += $value[$i];
             }
@@ -41,12 +49,14 @@ class Day3 extends AbstractBenchmarking
         return (bindec($this->gamma)) * (bindec($this->epsilon));
     }
 
-    public function part2()
+    public function part2(bool $test = false)
     {
-        $co2 = $this->data;
-        $o = $this->data;
+        $inputData = $test ? $this->testData : $this->data;
+        $this->bitSize = count($inputData[0]);
+        $co2 = $inputData;
+        $o = $inputData;
         $this->dataBitSum = array_fill(0, $this->bitSize, 0);
-        foreach ($this->data as $value) {
+        foreach ($inputData as $value) {
             for ($i = 0; $i < $this->bitSize; $i++) {
                 $this->dataBitSum[$i] += $value[$i];
             }
@@ -102,5 +112,16 @@ class Day3 extends AbstractBenchmarking
             }
             $co2Index++;
         }
+    }
+
+    public function parseData(bool $test = false)
+    {
+        $rawInputData = $test ? $this->rawTestData : $this->rawData;
+        if ($test) {
+            $this->testData = array_map('str_split', explode(PHP_EOL, $rawInputData));
+        } else {
+            $this->data = array_map('str_split', explode(PHP_EOL, $rawInputData));
+        }
+
     }
 }

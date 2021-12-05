@@ -12,6 +12,7 @@ function generateNewDayDataFile(string $payload, int $day)
 {
     $payload = implode(PHP_EOL, array_filter(explode(PHP_EOL, $payload)));
     file_put_contents("Data/day$day.txt", $payload);
+    file_put_contents("TestData/day$day.txt", '');
 }
 
 function executeCurl($url)
