@@ -292,10 +292,11 @@ class ConsoleTable
         }
 
         $output .= $padding; # left padding
-        $cell    = trim(preg_replace('/\s+/', ' ', $cell)); # remove line breaks
-        $content = preg_replace('#\x1b[[][^A-Za-z]*[A-Za-z]#', '', $cell);
-        $delta   = mb_strlen($cell, 'UTF-8') - mb_strlen($content, 'UTF-8');
-        $output .= $this->strPadUnicode($cell, $width + $delta, $row ? ' ' : '-'); # cell content
+        if (in_array(trim($cell), ["\x1b[32m✔\x1b[0m", "\x1b[31m✘\x1b[0m", "\x1b[33m?\x1b[0m"])) {
+          $output .= '  ' . trim($cell) . '  ';
+        } else {
+            $output .= $this->strPadUnicode($cell, $width, $row ? ' ' : '-'); # cell content
+        }
         $output .= $padding; # right padding
         if ($row && $index == count($row) - 1 && $this->border) {
             $output .= $row ? '|' : '+';
@@ -370,6 +371,7 @@ class ConsoleTable
      */
     private function setMaxColumnCount($count)
     {
+
         if ($count > $this->maxColumnCount) {
             $this->maxColumnCount = $count;
         }

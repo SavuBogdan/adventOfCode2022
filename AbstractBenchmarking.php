@@ -81,6 +81,6 @@ abstract class AbstractBenchmarking
             $notation = 'ns';
         }
 
-        return [(string)round($time, 3), $notation];
+        return [number_format(round($time, 3),3), $notation, $ns];
     }
 }
