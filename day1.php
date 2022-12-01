@@ -1,8 +1,5 @@
 <?php
 
-/**
- *
- */
 require_once './AbstractBenchmarking.php';
 
 class Day1 extends AbstractBenchmarking
@@ -20,44 +17,29 @@ class Day1 extends AbstractBenchmarking
         $this->parseData();
     }
 
+    public function parseData(bool $test = false): void
+    {
+        $rawInputData = $test ? $this->rawTestData : $this->rawData;
+        foreach (explode(PHP_EOL, $rawInputData) as $value) {
+            preg_match('/(\d+)$/', $value, $matches);
+            $lineInput = array_map('intval', array_slice($matches, 1, 4));
+            if ($test) {
+                $this->testData[] = $lineInput;
+            } else {
+                $this->data[] = $lineInput;
+            }
+        }
+    }
+
     public function part1(bool $test = false): int
     {
         $inputData = $test ? $this->testData : $this->data;
-        $count = 0;
-        $previousValue = $inputData[0];
-
-        foreach ($inputData as $value) {
-            if ($previousValue < $value) {
-                $count++;
-            }
-            $previousValue = $value;
-        }
-        return $count;
+        return 0;
     }
 
     public function part2(bool $test = false): int
     {
         $inputData = $test ? $this->testData : $this->data;
-        $count = 0;
-        $previousGroup = $inputData[0] + $inputData[1] + $inputData[2];
-        $countInputData = count($inputData);
-        for ($i = 2; $i < $countInputData - 2; $i++) {
-            $currentGroup = $inputData[$i] + $inputData[$i + 1] + $inputData[$i + 2];
-            if ($previousGroup < $currentGroup) {
-                $count++;
-            }
-            $previousGroup = $currentGroup;
-        }
-        return $count;
-    }
-
-    public function parseData(bool $test = false)
-    {
-        $rawInputData = $test ? $this->rawTestData : $this->rawData;
-        if ($test) {
-            $this->testData = array_map('intval',explode("\n", $rawInputData));
-        } else {
-            $this->data = array_map('intval',explode("\n", $rawInputData));
-        }
+        return 0;
     }
 }
