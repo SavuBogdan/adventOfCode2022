@@ -181,7 +181,7 @@ foreach ($timings as $row) {
 
 $tableOutput = $table->getTable();
 $output = "\n\n\n" .
-    PHP_EOL . PHP_EOL . '🎄🎄🎄  Benchmarking AdventOfCode2021...  🎄🎄🎄' . PHP_EOL . PHP_EOL .
+    PHP_EOL . PHP_EOL . '🎄🎄🎄  Benchmarking AdventOfCode2022...  🎄🎄🎄' . PHP_EOL . PHP_EOL .
     $tableOutput .
     "\n\n\n";
 
