@@ -2,8 +2,8 @@
 
 use LucidFrame\Console\ConsoleTable;
 
+const NUMBER_OF_RUNS = 100;
 require_once 'ConsoleTable.php';
-
 const EMOJI = [
     'success' => '✅',
     'fail' => '❌',
@@ -17,17 +17,13 @@ $files = preg_filter('/.*day\d+\.php/', '$0', glob(dirname(__FILE__) . '/*.php')
 natsort($files);
 
 foreach ($files as $file) {
-    include $file;
+    require_once $file;
 }
 $gradient1 = [];
 $steps = 333333;
 
 $previous = null;
 $colors = [
-//    [251, 0, 77],
-//    [218, 0, 251],
-//    [21, 0, 251],
-//    [0, 208, 251],
     [0, 251, 10],
     [251, 251, 0],
     [251, 76, 0],
@@ -47,38 +43,6 @@ foreach ($colors as $color) {
         $g = floor($previous[1] + ($g_step * $i));
         $b = floor($previous[2] + ($b_step * $i));
         $gradient1[] = [$r, $g, $b];
-    }
-    $previous = $color;
-}
-
-$gradient2 = [];
-$steps = 10001;
-
-$previous = null;
-$colors = [
-    [251, 0, 77],
-    [218, 0, 251],
-    [21, 0, 251],
-    [0, 208, 251],
-    [0, 251, 10],
-    [251, 251, 0],
-    [251, 76, 0],
-];
-
-foreach ($colors as $color) {
-    if (empty($previous)) {
-        $previous = $color;
-        continue;
-    }
-    $r_step = ($color[0] - $previous[0]) / $steps;
-    $g_step = ($color[1] - $previous[1]) / $steps;
-    $b_step = ($color[2] - $previous[2]) / $steps;
-
-    for ($i = 0; $i < $steps; $i++) {
-        $r = floor($previous[0] + ($r_step * $i));
-        $g = floor($previous[1] + ($g_step * $i));
-        $b = floor($previous[2] + ($b_step * $i));
-        $gradient2[] = [$r, $g, $b];
     }
     $previous = $color;
 }
@@ -131,14 +95,14 @@ function addEntry(mixed $file, array &$timings, int &$currentRow, int &$low, int
     if (!isset($testResults[(int)filter_var($className, FILTER_SANITIZE_NUMBER_INT) - 1])) {
         $result1 = $outputOrangeQ;
     } else {
-        $result1 = $result1 !== $testResults[(int)filter_var($className, FILTER_SANITIZE_NUMBER_INT) - 1][0]
+        $result1 = $result1 != $testResults[(int)filter_var($className, FILTER_SANITIZE_NUMBER_INT) - 1][0]
             ? $outputRedX
             : $outputGreenCheckmark;
     }
     if (!isset($testResults[(int)filter_var($className, FILTER_SANITIZE_NUMBER_INT) - 1])) {
         $result2 = $outputOrangeQ;
     } else {
-        $result2 = $result2 !== $testResults[(int)filter_var($className, FILTER_SANITIZE_NUMBER_INT) - 1][1]
+        $result2 = $result2 != $testResults[(int)filter_var($className, FILTER_SANITIZE_NUMBER_INT) - 1][1]
             ? $outputRedX
             : $outputGreenCheckmark;
     }
@@ -147,7 +111,7 @@ function addEntry(mixed $file, array &$timings, int &$currentRow, int &$low, int
     $parseTime = $class->benchmarkParseData();
 
     $class2 = new $className();
-    [$part1Time, $part2Time] = $class2->benchmark(100);
+    [$part1Time, $part2Time] = $class2->benchmark(NUMBER_OF_RUNS);
 
 
     $timings[$currentRow] = [
@@ -223,8 +187,6 @@ $output = "\n\n\n" .
 
 echo $output;
 
-//printTable($output, $gradient2);
-
 function printTable($output, $gradient): string
 {
     $return = '';
@@ -232,8 +194,6 @@ function printTable($output, $gradient): string
     foreach (str_split($outputPrint) as $key => $char) {
 
         $percentage = percentageBetweenTwoNumbers($key, 0, strlen($outputPrint));
-//        var_dump($percentage);
-//        var_dump(count($gradient));
         $key = $percentage * 60000 / 100 >= 60000 ? 60000 : ($percentage === 0 ? 0 : $percentage * 60000 / 100);
         $return .= colorize($char, $gradient[$key][0], $gradient[$key][1], $gradient[$key][2]);
     }
@@ -243,7 +203,7 @@ function printTable($output, $gradient): string
 
 function colorize($string, $r, $g, $b)
 {
-    $colored_string = '';
+    $coloredString = '';
     $bg = "48;2;${r};${g};${b}";
 
     $ir = 255 - $r;
@@ -252,13 +212,13 @@ function colorize($string, $r, $g, $b)
     $fg = "38;2;${ir};${ig};${ib}";
 
     if (isset($fg)) {
-        $colored_string .= "\033[" . $fg . "m";
+        $coloredString .= "\033[" . $fg . "m";
     }
     if (isset($bg)) {
-        $colored_string .= "\033[" . $bg . "m";
+        $coloredString .= "\033[" . $bg . "m";
     }
-    $colored_string .= $string . "\033[0m";
-    return $colored_string;
+    $coloredString .= $string . "\033[0m";
+    return $coloredString;
 }
 
 echo "\n\n\n";
