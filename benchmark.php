@@ -2,7 +2,7 @@
 
 use LucidFrame\Console\ConsoleTable;
 
-const NUMBER_OF_RUNS = 100;
+const NUMBER_OF_RUNS = 1000;
 require_once 'ConsoleTable.php';
 const EMOJI = [
     'success' => '✅',
