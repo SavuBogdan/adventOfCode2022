@@ -66,7 +66,3 @@ class Day2 extends AbstractBenchmarking
         return $score;
     }
 }
-
-$day = new Day2();
-var_dump($day->part1());
-//var_dump($day->part2());
